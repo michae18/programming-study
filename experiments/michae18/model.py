@@ -42,18 +42,18 @@ class SmallLSTM(nn.Module):
         ) # new_zeros: history_input의 구조와 device에 맞게 0행렬 생성
         
         # 실제 과거 풀이가 있는 사람만 lstm 실행한다.
-        before_tested_num = lengths > 0
-        if before_tested_num.any().item():
+        has_history = lengths > 0
+        if has_history.any().item():
             # pack_padded_sequence: padding을 제외한 값들만 가져옴
             packed = pack_padded_sequence(
-                history_input[before_tested_num],
-                lengths[before_tested_num].cpu(),
+                history_input[has_history],
+                lengths[has_history].cpu(),
                 batch_first=True,
                 enforce_sorted=False
             )
             _, (h_n, _) = self.lstm(packed)
             # output , (h_n : hidden state(상태 요약), c_n : cell state(내부 벡터(기억)))
-            history_state[before_tested_num] = h_n[-1] # 마지막 풀이 이후의 h_n 가져오기
+            history_state[has_history] = h_n[-1] # 마지막 풀이 이후의 h_n 가져오기
         return history_state
 
     # 과거 학습 상태 + 현재 문제로 확률 예측
